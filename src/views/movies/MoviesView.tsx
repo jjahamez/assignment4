@@ -7,18 +7,12 @@ export const MoviesView = () => {
   const navigate = useNavigate();
 
   const safeCategory = category ?? "popular";
-
-  const categoryLabelMap: Record<string, string> = {
-    popular: "Popular",
-    top_rated: "Top Rated",
-    now_playing: "Now Playing",
-    upcoming: "Upcoming",
-  };
+  const apiKey = import.meta.env.VITE_TMDB_API_KEY;
 
   const [movies, setMovies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -26,108 +20,113 @@ export const MoviesView = () => {
         setLoading(true);
 
         const res = await axios.get(
-          `https://api.themoviedb.org/3/movie/${safeCategory}?api_key=${apiKey}`
+          `https://api.themoviedb.org/3/movie/${safeCategory}?api_key=${apiKey}&page=${page}`
         );
 
         setMovies(res.data.results);
-      } catch (err) {
-        console.log(err);
+        setTotalPages(res.data.total_pages);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMovies();
+  }, [page, safeCategory]);
+
+  useEffect(() => {
+    setPage(1);
   }, [safeCategory]);
 
   const changeCategory = (newCategory: string) => {
     navigate(`/movies/category/${newCategory}`);
   };
 
-  if (loading) {
-    return (
-      <div className="p-10 text-center text-gray-400">
-        Loading movies...
-      </div>
-    );
-  }
+  const btnBase =
+    "px-3 py-1 rounded transition font-medium";
+
+  const blueBtn =
+    "bg-blue-600 hover:bg-blue-500 text-white";
+
+  const greyBtn =
+    "bg-gray-700 hover:bg-gray-600 text-white";
 
   return (
-    <div className="p-6 space-y-6 text-white bg-gray-900 min-h-screen">
+    <section className="max-w-[1200px] mx-auto p-5 space-y-6 text-white bg-gray-900 min-h-screen">
 
-      {/* 🎬 CATEGORY BUTTONS */}
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => changeCategory("popular")}
-          className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-        >
+      <h1 className="text-3xl font-bold tracking-tight">
+        Movies · <span className="text-gray-400">{safeCategory}</span>
+      </h1>
+
+      {/* CATEGORY BUTTONS */}
+      <div className="flex flex-wrap gap-2">
+        <button onClick={() => changeCategory("popular")} className={`${btnBase} ${blueBtn}`}>
           Popular
         </button>
 
-        <button
-          onClick={() => changeCategory("top_rated")}
-          className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-        >
+        <button onClick={() => changeCategory("top_rated")} className={`${btnBase} ${greyBtn}`}>
           Top Rated
         </button>
 
-        <button
-          onClick={() => changeCategory("now_playing")}
-          className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-        >
+        <button onClick={() => changeCategory("now_playing")} className={`${btnBase} ${greyBtn}`}>
           Now Playing
         </button>
 
-        <button
-          onClick={() => changeCategory("upcoming")}
-          className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition"
-        >
+        <button onClick={() => changeCategory("upcoming")} className={`${btnBase} ${greyBtn}`}>
           Upcoming
         </button>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight">
-        Movies ·{" "}
-        <span className="text-gray-400">
-          {categoryLabelMap[safeCategory] ?? safeCategory}
-        </span>
-      </h1>
+      {loading ? (
+        <div className="text-gray-400">Loading...</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-
-        {movies.map((movie) => (
-          <div
-            key={movie.id}
-            onClick={() => navigate(`/movie/${movie.id}`)}
-            className="cursor-pointer group"
-          >
-            <div className="bg-gray-800 rounded-xl overflow-hidden hover:scale-[1.03] transition">
-
-              <img
-                src={
-                  movie.poster_path
-                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                    : "https://via.placeholder.com/300x450?text=No+Image"
-                }
-                className="w-full h-[340px] object-cover"
-                alt={movie.title}
-              />
-
-              <div className="p-3">
-                <p className="text-sm font-medium group-hover:text-white">
-                  {movie.title}
-                </p>
-
-                <p className="text-xs text-gray-400">
-                  ⭐ {movie.vote_average}
-                </p>
+            {movies.map((movie) => (
+              <div
+                key={movie.id}
+                onClick={() => navigate(`/movie/${movie.id}`)}
+                className="cursor-pointer"
+              >
+                <img
+                  src={
+                    movie.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                      : "https://via.placeholder.com/300x450?text=No+Image"
+                  }
+                  className="w-full h-[340px] object-cover rounded"
+                />
+                <p>{movie.title}</p>
+                <p className="text-gray-400">⭐ {movie.vote_average}</p>
               </div>
+            ))}
 
-            </div>
           </div>
-        ))}
 
-      </div>
-    </div>
+          {/* PAGINATION */}
+          <div className="flex items-center justify-center gap-4 pt-6">
+
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              className={`${btnBase} ${greyBtn}`}
+            >
+              ←
+            </button>
+
+            <span className="text-gray-300">
+              {page} / {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              className={`${btnBase} ${blueBtn}`}
+            >
+              →
+            </button>
+
+          </div>
+        </>
+      )}
+    </section>
   );
 };
