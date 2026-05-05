@@ -1,6 +1,8 @@
 import { ButtonGroup, Link, SearchBar } from '@/components';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaSearch } from 'react-icons/fa';
+
  
 export const Header = () => {
   const navigate = useNavigate();
@@ -10,7 +12,7 @@ export const Header = () => {
   return (
     <header>
       <nav className="flex items-center gap-4 p-4 bg-gray-800 flex-wrap">
-        <h1 className="text-2xl font-bold text-white shrink-0">Stephen's Playground</h1>
+        <h1 className="text-2xl font-bold text-white shrink-0">TMDB Explorer</h1>
         <div className="flex gap-2 flex-wrap">
           <Link to="/movies/category/popular" match={['/movies/category/:category']}>Movies</Link>
           <Link to="/tv/category/airing_today" match={['/tv/category/:category']}>TV</Link>
@@ -18,6 +20,7 @@ export const Header = () => {
           <Link to="/genre/movie/action" match={['/genre/:mediaType/:genre']}>Genre</Link>
         </div>
         <div className="flex items-center gap-3 ml-auto flex-wrap">
+          <FaSearch className="text-gray-500" />
           <SearchBar
             value={query}
             onChange={(input) => {
