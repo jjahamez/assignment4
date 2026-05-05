@@ -1,31 +1,47 @@
-import { ButtonGroup, ImageGrid, Pagination } from '@/components';
+import { ButtonGroup, ImageGrid, LinkGroup, Pagination } from '@/components';
 import { TRENDING_ENDPOINT } from '@/core/constants';
-import type { MoviesResponse } from '@/core/types';
+import type { GenreResponse } from '@/core/types';
 import { useTmdb } from '@/hooks';
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+ 
 export const TrendingView = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState<number>(1);
+  const { category } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const interval = searchParams.get('interval') || 'day';
-  const { data } = useTmdb<MoviesResponse>(`${TRENDING_ENDPOINT}/${interval}`, { page, time_window: interval }, [page, interval]);
-
+  const interval = searchParams.get('interval') ?? 'day';
+  const formatCategory = category === 'movies' ? 'movie' : 'tv';
+ 
+  const { data } = useTmdb<GenreResponse>(
+    `${TRENDING_ENDPOINT}/${formatCategory}/${interval}`,
+    { page },
+    [category, interval, page]
+  );
+ 
   const gridData = (data?.results ?? []).map((result) => ({
     id: result.id,
     imagePath: result.poster_path,
-    primaryText: result.original_title,
+    primaryText: result.original_title ?? result.name ?? '',
   }));
-
+ 
+  useEffect(() => {
+    setPage(1);
+  }, [category, interval]);
+ 
   if (!data) {
     return <p className="text-center text-gray-400">Loading...</p>;
   }
-
+ 
   return (
     <section className="max-w-[1200px] mx-auto p-5 space-y-5">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold">Now Playing</h1>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <LinkGroup
+          options={[
+            { label: 'Movies', to: `/trending/movies?interval=${interval}` },
+            { label: 'TV', to: `/trending/tv?interval=${interval}` },
+          ]}
+        />
         <ButtonGroup
           value={interval}
           options={[
@@ -35,7 +51,12 @@ export const TrendingView = () => {
           onClick={(value) => setSearchParams({ interval: value })}
         />
       </div>
-      <ImageGrid results={gridData} onClick={(id) => navigate(`/movie/${id}/credits`)} />
+      <ImageGrid
+        results={gridData}
+        onClick={(id) =>
+          category === 'movies' ? navigate(`/movies/${id}/credits`) : navigate(`/tv/${id}/seasons`)
+        }
+      />
       <Pagination page={page} maxPages={data.total_pages} onClick={setPage} />
     </section>
   );

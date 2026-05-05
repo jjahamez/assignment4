@@ -1,5 +1,6 @@
 export * from '@/components/Button';
 export * from '@/components/ButtonGroup';
+export * from '@/components/Footer';
 export * from '@/components/Header';
 export * from '@/components/ImageGrid';
 export * from '@/components/Link';
