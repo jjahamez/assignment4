@@ -25,6 +25,7 @@ export type GenreResponse = {
     original_title?: string;
     name?: string;
     poster_path: string;
+    vote_average: number;
   }>;
   total_pages: number;
 };

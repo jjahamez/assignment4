@@ -34,7 +34,7 @@ export const CareerView = () => {
         ? <ImageGrid
             results={gridData}
             onClick={(id) => {
-              const item = combinedCredits.find((c) => c.id === id);
+              const item = combinedCredits.find((x) => x.id === id);
               navigate(`/${item?.category}/${id}/credits`);
             }}
           />

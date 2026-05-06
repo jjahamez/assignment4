@@ -14,6 +14,7 @@ export const NowPlayingView = () => {
     id: result.id,
     imagePath: result.poster_path,
     primaryText: result.original_title,
+    secondaryText: `⭐ ${result.vote_average.toFixed(1)}`,
   }));
 
   if (!data) {
